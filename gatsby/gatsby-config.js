@@ -4,7 +4,17 @@
 module.exports = {
   siteMetadata: {
     title: `AOM IT`,
-    siteUrl: `https://www.yourdomain.tld`
+    siteUrl: `https://www.aomit.co.uk`
   },
-  plugins: ["gatsby-plugin-styled-components"]
+  plugins: [
+    "gatsby-plugin-styled-components",
+  {
+    resolve: "gatsby-source-filesystem",
+    options: {
+      name: `blog`,
+      path: `${__dirname}/blog`,
+    }
+  },
+  "gatsby-plugin-mdx",
+]
 };
