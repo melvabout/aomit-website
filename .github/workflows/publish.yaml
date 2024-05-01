@@ -24,6 +24,7 @@ jobs:
       - name: Build
         run: |
           cd gatsby
+          npm config set legacy-peer-deps true
           npm ci
           npm run build
       - name: Deploy Gatsby to AWS S3              
