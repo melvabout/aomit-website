@@ -16,7 +16,7 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-region: eu-west-2
-          role-to-assume: github-aomit-website-deployment-role
+          role-to-assume: arn:aws:iam::905418442662:role/github-aomit-website-deployment-role
       - name: Use Node.js
         uses: actions/setup-node@v4
         with:
