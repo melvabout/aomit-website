@@ -1,0 +1,7 @@
+name: Release Website
+on: workflow_dispatch
+jobs:
+  Deploy-Website:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo Hello
