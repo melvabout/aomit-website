@@ -15,14 +15,14 @@ dependency "storage" {
   config_path = "../storage"
   
   mock_outputs = {
-    www_domain_website_endpoint = "arn.arn.arn"
-    domain_website_endpoint = "more.arns"
+    bucket_regional_domain_name = "arn.arn.arn"
+    www_domain_website_endpoint = "more.arns"
   }
 }
 
 inputs = {
   domain = local.env_vars.locals.domain
-  www_domain_website_endpoint = dependency.storage.outputs.www_domain_website_endpoint
-  domain_website_endpoint = dependency.storage.outputs.domain_website_endpoint
+  www_bucket_domain_name = dependency.storage.outputs.www_domain_website_endpoint
+  bucket_domain_name = dependency.storage.outputs.bucket_regional_domain_name
 }
 
