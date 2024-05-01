@@ -28,8 +28,6 @@ jobs:
           npm ci
           npm run build
       - name: Deploy Gatsby to AWS S3              
-        uses: jonelantha/gatsby-s3-action@v3
-        with:
-          dest-s3-bucket: aomit.co.uk
+        run: /usr/local/bin/aws s3 sync ./public/ s3://aomit.co.uk --delete --cache-control public, max-age=31536000, immutable, s-maxage=31536000
       
 
