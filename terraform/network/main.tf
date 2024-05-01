@@ -3,8 +3,8 @@ terraform {
 }
 
 provider "aws" {
-    alias = "acm"
-    region = "us-east-1"
+  alias  = "acm"
+  region = "us-east-1"
 }
 
 resource "aws_route53_zone" "primary" {
@@ -15,8 +15,8 @@ resource "aws_route53_record" "domain" {
   zone_id = aws_route53_zone.primary.zone_id
   name    = var.domain
   type    = "A"
-  
-   alias {
+
+  alias {
     name                   = aws_cloudfront_distribution.domain_distribution.domain_name
     zone_id                = aws_cloudfront_distribution.domain_distribution.hosted_zone_id
     evaluate_target_health = false
@@ -27,8 +27,8 @@ resource "aws_route53_record" "www_domain" {
   zone_id = aws_route53_zone.primary.zone_id
   name    = "www.${var.domain}"
   type    = "A"
-  
-   alias {
+
+  alias {
     name                   = aws_cloudfront_distribution.www_domain_distribution.domain_name
     zone_id                = aws_cloudfront_distribution.www_domain_distribution.hosted_zone_id
     evaluate_target_health = false
@@ -37,16 +37,13 @@ resource "aws_route53_record" "www_domain" {
 
 resource "aws_cloudfront_distribution" "domain_distribution" {
   origin {
-    domain_name = var.domain_website_endpoint
-    origin_id   = "S3-.${var.domain}"
+    domain_name              = var.bucket_domain_name
+    origin_id                = "S3-.${var.domain}"
+    origin_access_control_id = aws_cloudfront_origin_access_control.domain.id
 
-    custom_origin_config {
-      http_port              = 80
-      https_port             = 443
-      origin_protocol_policy = "http-only"
-      origin_ssl_protocols   = ["TLSv1", "TLSv1.1", "TLSv1.2"]
-    }
   }
+
+  price_class = "PriceClass_100"
 
   enabled             = true
   is_ipv6_enabled     = true
@@ -57,6 +54,13 @@ resource "aws_cloudfront_distribution" "domain_distribution" {
   custom_error_response {
     error_caching_min_ttl = 0
     error_code            = 404
+    response_code         = 200
+    response_page_path    = "/404.html"
+  }
+
+  custom_error_response {
+    error_caching_min_ttl = 0
+    error_code            = 403
     response_code         = 200
     response_page_path    = "/404.html"
   }
@@ -84,22 +88,31 @@ resource "aws_cloudfront_distribution" "domain_distribution" {
   restrictions {
     geo_restriction {
       restriction_type = "blacklist"
-      locations = ["CN"]
+      locations        = ["CN"]
     }
   }
 
   viewer_certificate {
-    acm_certificate_arn      = aws_acm_certificate.ssl_certificate.arn
+    acm_certificate_arn      = aws_acm_certificate_validation.cert_validation.certificate_arn
     ssl_support_method       = "sni-only"
     minimum_protocol_version = "TLSv1.1_2016"
   }
 
 }
 
+resource "aws_cloudfront_origin_access_control" "domain" {
+  name                              = "domain"
+  origin_access_control_origin_type = "s3"
+  signing_behavior                  = "always"
+  signing_protocol                  = "sigv4"
+}
+
+
 resource "aws_cloudfront_distribution" "www_domain_distribution" {
   origin {
-    domain_name = var.www_domain_website_endpoint #aws_s3_bucket.www_bucket.website_endpoint
+    domain_name = var.www_bucket_domain_name
     origin_id   = "S3-www.${var.domain}"
+    # origin_access_control_id = aws_cloudfront_origin_access_control.domain.id
 
     custom_origin_config {
       http_port              = 80
@@ -109,17 +122,12 @@ resource "aws_cloudfront_distribution" "www_domain_distribution" {
     }
   }
 
-  enabled             = true
-  is_ipv6_enabled     = true
+  price_class = "PriceClass_100"
+
+  enabled         = true
+  is_ipv6_enabled = true
 
   aliases = ["www.${var.domain}"]
-
-  custom_error_response {
-    error_caching_min_ttl = 0
-    error_code            = 404
-    response_code         = 200
-    response_page_path    = "/404.html"
-  }
 
   default_cache_behavior {
     allowed_methods  = ["GET", "HEAD"]
@@ -145,12 +153,12 @@ resource "aws_cloudfront_distribution" "www_domain_distribution" {
   restrictions {
     geo_restriction {
       restriction_type = "blacklist"
-      locations = ["CN"]
+      locations        = ["CN"]
     }
   }
 
   viewer_certificate {
-    acm_certificate_arn      = aws_acm_certificate.ssl_certificate.arn
+    acm_certificate_arn      = aws_acm_certificate_validation.cert_validation.certificate_arn
     ssl_support_method       = "sni-only"
     minimum_protocol_version = "TLSv1.1_2016"
   }
@@ -158,7 +166,7 @@ resource "aws_cloudfront_distribution" "www_domain_distribution" {
 }
 
 resource "aws_acm_certificate_validation" "cert_validation" {
-  provider        = aws.acm
+  provider                = aws.acm
   certificate_arn         = aws_acm_certificate.ssl_certificate.arn
   validation_record_fqdns = [for record in aws_route53_record.cert_validation : record.fqdn]
 }
@@ -175,7 +183,7 @@ resource "aws_acm_certificate" "ssl_certificate" {
 }
 
 resource "aws_route53_record" "cert_validation" {
-   for_each = {
+  for_each = {
     for dvo in aws_acm_certificate.ssl_certificate.domain_validation_options : dvo.domain_name => {
       name   = dvo.resource_record_name
       record = dvo.resource_record_value
@@ -189,4 +197,14 @@ resource "aws_route53_record" "cert_validation" {
   ttl             = 60
   type            = each.value.type
   zone_id         = aws_route53_zone.primary.id
+}
+
+resource "aws_s3_bucket_policy" "domain" {
+  bucket = var.domain
+  policy = data.aws_iam_policy_document.domain.json
+}
+
+resource "aws_s3_bucket_policy" "www_domain" {
+  bucket = "www.${var.domain}"
+  policy = data.aws_iam_policy_document.www_domain.json
 }

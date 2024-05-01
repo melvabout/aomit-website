@@ -1,17 +1,14 @@
 variable "domain" {
   description = "The domain to use."
-  type = string
+  type        = string
 }
 
-variable "domain_website_endpoint" {
+variable "bucket_domain_name" {
   description = "Website endpoint for the domain bucket"
-  type = string
+  type        = string
 }
 
-variable "www_domain_website_endpoint" {
+variable "www_bucket_domain_name" {
   description = "Website endpoint for the www domain bucket"
-  type = string
+  type        = string
 }
-
-
-
