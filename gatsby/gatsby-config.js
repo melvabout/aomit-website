@@ -4,7 +4,7 @@
 module.exports = {
   siteMetadata: {
     title: `AOM IT`,
-    siteUrl: `https://www.aomit.co.uk`
+    siteUrl: `https://aomit.co.uk`
   },
   plugins: [
     "gatsby-plugin-styled-components",

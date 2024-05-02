@@ -48,6 +48,14 @@ const Layout = ({ pageTitle, children }) => {
         {children}
       </main>
       </div>
+      <br />
+      <footer>
+      <div className={innerContainer}>
+        <div>Email: <a href="mailto:andy@aomit.co.uk">andy@aomit.co.uk</a></div>
+        <div>LinkedIn: <a href="https://www.linkedin.com/in/andrew-melvin-a53b657b">Andrew Melvin</a></div>
+        <div>GitHub: <a href="https://github.com/melvabout">melvabout</a></div>
+      </div>
+      </footer>
     </div>
   )
 }
