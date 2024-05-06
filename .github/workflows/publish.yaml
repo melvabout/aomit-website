@@ -28,6 +28,11 @@ jobs:
           npm ci
           npm run build
       - name: Deploy Gatsby to AWS S3              
-        run: /usr/local/bin/aws s3 sync ./gatsby/public/ s3://aomit.co.uk --delete
+        run: |
+          /usr/local/bin/aws s3 sync ./gatsby/public/ s3://aomit.co.uk --delete
+          aws cloudfront create-invalidation --distribution-id E2HNVK23N1CMFK --paths "/*";
+          aws cloudfront create-invalidation --distribution-id E1E86K3KENGQBG --paths "/*";
+
+
       
 
